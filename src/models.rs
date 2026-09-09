@@ -14,6 +14,7 @@ pub enum ModelBase {
     B164,
     B168,
     B172,
+    B173,
     B174,
 }
 
@@ -29,6 +30,7 @@ impl ModelBase {
             "B164" => Self::B164,
             "B168" => Self::B168,
             "B172" => Self::B172,
+            "B173" => Self::B173,
             "B174" => Self::B174,
             _ => Self::Unknown,
         }
@@ -46,6 +48,7 @@ impl ModelBase {
             Self::B164 => "B164",
             Self::B168 => "B168",
             Self::B172 => "B172",
+            Self::B173 => "B173",
             Self::B174 => "B174",
         }
     }
@@ -59,7 +62,10 @@ impl ModelBase {
     }
 
     pub fn supports_enhanced_bass(self) -> bool {
-        matches!(self, Self::B171 | Self::B172 | Self::B168 | Self::B162)
+        matches!(
+            self,
+            Self::B171 | Self::B172 | Self::B168 | Self::B162 | Self::B173
+        )
     }
 
     pub fn supports_in_ear_detection(self) -> bool {
@@ -242,6 +248,18 @@ pub static MODEL_LIST: &[ModelInfo] = &[
         base: ModelBase::B174,
         anc_capable: false,
     },
+    ModelInfo {
+        id: "feraligatr_black",
+        name: "Nothing Ear (3)",
+        base: ModelBase::B173,
+        anc_capable: true,
+    },
+    ModelInfo {
+        id: "feraligatr_white",
+        name: "Nothing Ear (3)",
+        base: ModelBase::B173,
+        anc_capable: true,
+    },
 ];
 
 const SKU_TO_MODEL_PAIRS: &[(&str, &str)] = &[
@@ -304,6 +322,10 @@ const SKU_TO_MODEL_PAIRS: &[(&str, &str)] = &[
     ("82", "espeon_white"),
     ("83", "espeon_black"),
     ("11200005", "flaaffy_white"),
+    // Nothing Ear (3): SKU 21 confirmed on hardware (serial SH1021...);
+    // 22 is the presumed other colorway, unverified.
+    ("21", "feraligatr_black"),
+    ("22", "feraligatr_white"),
 ];
 
 pub static MODEL_BY_ID: Lazy<HashMap<&'static str, &'static ModelInfo>> = Lazy::new(|| {
