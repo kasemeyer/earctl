@@ -1,6 +1,7 @@
 pub mod bluetooth;
 pub mod connection;
 pub mod error;
+pub mod gestures;
 pub mod models;
 pub mod protocol;
 pub mod server;

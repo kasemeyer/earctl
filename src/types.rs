@@ -177,6 +177,31 @@ pub struct GestureSlot {
     pub action: u8,
 }
 
+/// A gesture slot decorated with decoded names. Unknown codes serialize the
+/// raw fields only, so new devices degrade to the old output shape.
+#[derive(Debug, Clone, Serialize)]
+pub struct GestureSlotNamed {
+    #[serde(flatten)]
+    pub slot: GestureSlot,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_name: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gesture_name: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub action_name: Option<&'static str>,
+}
+
+impl From<GestureSlot> for GestureSlotNamed {
+    fn from(slot: GestureSlot) -> Self {
+        Self {
+            device_name: crate::gestures::device_name(slot.device),
+            gesture_name: crate::gestures::gesture_type_name(slot.gesture_type),
+            action_name: crate::gestures::action_name(slot.action),
+            slot,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedColor(pub [u8; 3]);
 

@@ -17,7 +17,8 @@ use crate::{
     service::{EarManager, EarSessionHandle},
     types::{
         AncLevel, CustomEq, EarFitResult, EarSide, EnhancedBassState, EqMode, FirmwareInfo,
-        GestureSlot, InEarState, LatencyState, LedColorSet, ModelSummary, PersonalizedAncState,
+        GestureSlot, GestureSlotNamed, InEarState, LatencyState, LedColorSet, ModelSummary,
+        PersonalizedAncState,
         SerialIdentity, SessionInfo,
     },
 };
@@ -274,9 +275,10 @@ async fn read_ear_fit(State(state): State<ApiState>) -> ApiResult<EarFitResult> 
     Ok(Json(session.read_ear_fit_result().await?))
 }
 
-async fn read_gestures(State(state): State<ApiState>) -> ApiResult<Vec<GestureSlot>> {
+async fn read_gestures(State(state): State<ApiState>) -> ApiResult<Vec<GestureSlotNamed>> {
     let session = state.manager.session().await?;
-    Ok(Json(session.read_gestures().await?))
+    let slots = session.read_gestures().await?;
+    Ok(Json(slots.into_iter().map(GestureSlotNamed::from).collect()))
 }
 
 async fn set_gesture(

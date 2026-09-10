@@ -65,6 +65,10 @@ enum Commands {
         #[command(subcommand)]
         action: SwitchCommand,
     },
+    Gestures {
+        #[command(subcommand)]
+        action: GesturesCommand,
+    },
     Ring(RingArgs),
 }
 
@@ -135,6 +139,25 @@ enum EnhancedBassCommand {
         enabled: bool,
         #[arg(long, default_value = "0")]
         level: u8,
+    },
+}
+
+#[derive(Subcommand)]
+enum GesturesCommand {
+    /// Read the gesture table with decoded names
+    Get,
+    /// Assign an action to a gesture slot
+    Set {
+        /// left, right or case
+        #[arg(long)]
+        device: String,
+        /// double, triple, hold or double_hold
+        #[arg(long)]
+        gesture: String,
+        /// Action name (see `gestures get` output, e.g. skip_forward,
+        /// volume_up, noise_control_anc_transparency) or a raw numeric code
+        #[arg(long)]
+        action: String,
     },
 }
 
@@ -383,6 +406,36 @@ async fn run_client(cli: Cli) -> Result<()> {
         Commands::PersonalizedAnc { action } => {
             handle_switch_command(&client, "/api/personalized-anc", "enabled", action).await?;
         }
+        Commands::Gestures { action } => match action {
+            GesturesCommand::Get => {
+                let resp: Value = client.get("/api/gestures").await?;
+                print_json(&resp)?;
+            }
+            GesturesCommand::Set {
+                device,
+                gesture,
+                action,
+            } => {
+                let device = ear_api::gestures::device_code(&device)
+                    .ok_or_else(|| anyhow!("unknown device '{device}' (left, right or case)"))?;
+                let gesture_type = ear_api::gestures::gesture_type_code(&gesture).ok_or_else(
+                    || anyhow!("unknown gesture '{gesture}' (double, triple, hold or double_hold)"),
+                )?;
+                let action_code = action
+                    .parse::<u8>()
+                    .ok()
+                    .or_else(|| ear_api::gestures::action_code(&action))
+                    .ok_or_else(|| anyhow!("unknown action '{action}'"))?;
+                let body = ear_api::GestureSlot {
+                    device,
+                    common: 1,
+                    gesture_type,
+                    action: action_code,
+                };
+                let resp: Value = client.post("/api/gestures", body).await?;
+                print_json(&resp)?;
+            }
+        },
         Commands::Ring(args) => {
             if args.enable {
                 print!("Warning: This will play a loud tone on your earbuds. Type 'y' to confirm: ");
